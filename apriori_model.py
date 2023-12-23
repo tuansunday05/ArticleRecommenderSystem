@@ -28,8 +28,10 @@ class AprioriRecommender:
     
     MODEL_NAME = 'Apriori'
     
-    def __init__(self, articles_df= None, interactions_df= None):
+    def __init__(self, articles_df= None, interactions_df= None, event_type_strength = None):
         self.interactions_df = interactions_df
+        self.interactions_df['eventStrength'] = interactions_df['eventType'].apply(lambda x: event_type_strength[x])
+
         self.items_df = articles_df
         dataset = list(interactions_df.groupby('personId', as_index=False).agg({'contentId': list})['contentId'].values)
         te = TransactionEncoder()
@@ -45,17 +47,16 @@ class AprioriRecommender:
         return self.MODEL_NAME
         
     def _get_similar_items_to_user_profile(self, person_id):
-        cands = list(interactions_df.loc[interactions_df['personId'] == person_id, 'contentId'].values)
+        cands = list(self.interactions_df.loc[self.interactions_df['personId'] == person_id, 'contentId'].values)
         
-        cands = interactions_df.loc[interactions_df['personId'] == person_id, ['contentId', 'eventStrength']]
+        cands = self.interactions_df.loc[self.interactions_df['personId'] == person_id, ['contentId', 'eventStrength']]
         # self.rules_df['consequents'] = self.rules_df['consequents'].astype('int64')
-        cands = cands.merge(self.rules_df, right_on='antecedents', left_on='contentId', how='left')
+        cands = cands.merge(self.rules_df, right_on='antecedents', left_on='contentId', how='inner')
 
         cands['lift'] = np.log(cands['lift'] * cands['eventStrength'])
         # cands['contentId'] = cands['contentId'].astype('int64')
         ###bug
         selected_cands = cands[['consequents', 'lift']].sort_values('lift', ascending=False)
-
         return selected_cands
     
     def get_items_interacted(self, person_id, interactions_df):
@@ -79,6 +80,8 @@ class AprioriRecommender:
             recommendations_df = recommendations_df.merge(self.items_df, how = 'left', 
                                                         left_on = 'contentId', 
                                                         right_on = 'contentId')[['recStrength', 'contentId', 'title', 'url', 'lang']]
+        recommendations_df.drop_duplicates(subset= 'contentId', keep= 'first',inplace=True)
+
         return recommendations_df
 
 if __name__ == "__main__":
@@ -86,9 +89,8 @@ if __name__ == "__main__":
     articles_df = pd.read_csv('data/shared_articles.csv')
     articles_df = articles_df[articles_df['eventType'] == 'CONTENT SHARED']
     interactions_df = pd.read_csv('data/users_interactions.csv')
-    interactions_df['eventStrength'] = interactions_df['eventType'].apply(lambda x: event_type_strength[x])
     person_id = -1479311724257856983
 
-    apriori_recommender_model = AprioriRecommender(articles_df, interactions_df)
+    apriori_recommender_model = AprioriRecommender(articles_df, interactions_df, event_type_strength)
     result = apriori_recommender_model.recommend_items(user_id= person_id, ignore_interacted=True, topn=10, verbose= True)
     print(result)
