@@ -70,10 +70,11 @@ class HybridRecommender:
         if verbose:
             if self.items_df is None:
                 raise Exception('"items_df" is required in verbose mode')
-            
-            recommendations_df = recommendations_df.merge(self.items_df, how = 'left', 
-                                                          on = 'contentId',suffixes=('_1', '_1'))[['recStrengthHybrid', 'contentId','title_y','url_y','lang_y']]
-            recommendations_df.rename(columns={'title_y': 'title', 'url_y': 'url', 'lang_y': 'lang'}, inplace=True)
+            # print(recommendations_df)
+            recommendations_df = recommendations_df.drop(['title', 'url', 'lang'], axis = 1).merge(self.items_df, how = 'left', 
+                                                          left_on = 'contentId', 
+                                                          right_on = 'contentId')[['recStrengthHybrid', 'contentId', 'title', 'url', 'lang']]
+    
         return recommendations_df
     
 if __name__ == "__main__":
