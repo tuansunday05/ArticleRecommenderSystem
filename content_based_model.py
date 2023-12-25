@@ -2,18 +2,10 @@ import numpy as np
 import scipy
 import pandas as pd
 import math
-import random
 import sklearn
 from nltk.corpus import stopwords
-import nltk
-#nltk.download('stopwords')
-from scipy.sparse import csr_matrix
-from sklearn.model_selection import train_test_split
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
-from scipy.sparse.linalg import svds
-from sklearn.preprocessing import MinMaxScaler
-import matplotlib.pyplot as plt
 
 event_type_strength = {
         'VIEW': 1.0,
@@ -140,15 +132,28 @@ class ContentBasedRecommender:
         self.tfidf_matrix = users_items_profiles.tfidf_matrix
         self.user_profiles = users_items_profiles.user_profiles
         self.interactions_full_df = users_items_profiles.interactions_full_df
+        self.users_items_profiles = users_items_profiles
+
     def get_model_name(self):
         return self.MODEL_NAME
         
-    def _get_similar_items_to_user_profile(self, person_id = None, user_profile= None, topn=1000):
+    def _get_similar_items_to_user_profile(self, person_id = None, user_profile= None, topn=50):
         #Computes the cosine similarity between the user profile and all item profiles
         if user_profile is not None:
             cosine_similarities = cosine_similarity(user_profile, self.tfidf_matrix)
         else:
             cosine_similarities = cosine_similarity(self.user_profiles[person_id], self.tfidf_matrix)
+        #Gets the top similar items
+        similar_indices = cosine_similarities.argsort().flatten()[-topn:]
+        #Sort the similar items by similarity
+        similar_items = sorted([(self.item_ids[i], cosine_similarities[0,i]) for i in similar_indices], key=lambda x: -x[1])
+        return similar_items
+    
+    def get_similar_items_to_item_profile(self, item_id= None, item_profile = None, topn=50):
+        #Computes the cosine similarity between the user profile and all item profiles
+        if item_profile is None:
+            item_profile = users_items_profiles.get_item_profile(item_id)
+        cosine_similarities = cosine_similarity(item_profile, self.tfidf_matrix)
         #Gets the top similar items
         similar_indices = cosine_similarities.argsort().flatten()[-topn:]
         #Sort the similar items by similarity
