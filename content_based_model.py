@@ -158,7 +158,7 @@ class ContentBasedRecommender:
     def get_similar_items_to_item_profile(self, item_id= None, item_profile = None, topn=50):
         #Computes the cosine similarity between the user profile and all item profiles
         if item_profile is None:
-            item_profile = users_items_profiles.get_item_profile(item_id)
+            item_profile = self.users_items_profiles.get_item_profile(item_id)
         cosine_similarities = cosine_similarity(item_profile, self.tfidf_matrix)
         #Gets the top similar items
         similar_indices = cosine_similarities.argsort().flatten()[-topn:]
@@ -170,6 +170,15 @@ class ContentBasedRecommender:
         # Get the user's data and merge in the movie information.
         interacted_items = interactions_df.loc[person_id]['contentId']
         return set(interacted_items if type(interacted_items) == pd.Series else [interacted_items])
+    
+    def update_user_profile(self, person_id = None):
+        self.users_items_profiles.update_user_profile(person_id= person_id)
+        return self.users_items_profiles
+    
+    def update_interactions_df(self, new_interactions_df):
+        self.users_items_profiles.update_interactions_df(new_interactions_df)
+        self.interactions_df = new_interactions_df
+
     
     def recommend_items(self, user_id = None, user_profile = None, ignore_interacted=False, topn=10, verbose=False):
         similar_items = self._get_similar_items_to_user_profile(user_id, user_profile)

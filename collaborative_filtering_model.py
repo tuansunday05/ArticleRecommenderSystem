@@ -102,7 +102,7 @@ class CFRecommender:
 
         return recommendations_df
     
-    def set_interaction(self,new_interactions_df):
+    def update_interaction(self,new_interactions_df):
         self.cf_predictions_df, self.items_df,self.all_user_predicted_rating_norm = self.factorization(self.articles_df, new_interactions_df)
     
 

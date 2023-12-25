@@ -17,6 +17,7 @@ class AprioriRecommender:
     
     def __init__(self, articles_df= None, interactions_df= None, event_type_strength = None):
         self.interactions_df = interactions_df
+        self.event_type_strength = event_type_strength
         self.interactions_df['eventStrength'] = interactions_df['eventType'].apply(lambda x: event_type_strength[x])
         users_interactions_count_df = self.interactions_df.groupby(['personId', 'contentId']).size().groupby('personId').size()
         users_with_enough_interactions_df = users_interactions_count_df[users_interactions_count_df >= 5].reset_index()[['personId']]
@@ -60,6 +61,20 @@ class AprioriRecommender:
         # Get the user's data and merge in the movie information.
         interacted_items = interactions_df.loc[person_id]['contentId']
         return set(interacted_items if type(interacted_items) == pd.Series else [interacted_items])
+    
+    def update_interactions_df(self, interactions_df):
+            # Get the user's data and merge in the movie information.
+        self.interactions_df = interactions_df
+        return self.interactions_df
+    
+    def update_user_profile(self, person_id = None):
+            # Get the user's data and merge in the movie information.
+        if person_id is not None:
+            self.interactions_df.loc[self.interactions_df['personId'] == person_id, 'eventStrength'] = self.interactions_df\
+                                                                                                    .loc[self.interactions_df['personId'] \
+                                                                                                    == person_id,'eventType'].apply(lambda x: \
+                                                                                                     self.event_type_strength[x])
+        return self.interactions_df
         
     def recommend_items(self, user_id, ignore_interacted= False, topn=10, verbose= False):
         similar_items = self._get_similar_items_to_user_profile(user_id)

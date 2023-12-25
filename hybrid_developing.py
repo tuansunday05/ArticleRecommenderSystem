@@ -28,6 +28,19 @@ class HybridRecommender:
         
     def get_model_name(self):
         return self.MODEL_NAME
+    
+    def update_user_profile(self, person_id, new_interactions_df = None, CB= True, CF= False, AP=True):
+        if CB == True and new_interactions_df is not None:
+            self.cb_rec_model.update_interactions_df(new_interactions_df)
+            self.cb_rec_model.users_items_profiles.update_user_profile(person_id= person_id)
+        if CF == True and new_interactions_df is not None:
+            self.cf_rec_model.update_interaction(new_interactions_df)
+        if AP == True:
+            self.ap_rec_model.update_user_profile(person_id= person_id)
+        
+        # user_profile = self.build_users_profile(person_id, self.interactions_indexed_df)
+        # self.user_profiles[person_id] = user_profile
+        
         
     def recommend_items(self, user_id, ignore_interacted= False, topn=10, verbose=False):
         #Getting the top-1000 Content-based filtering recommendations
@@ -74,9 +87,7 @@ if __name__ == "__main__":
     users_items_profiles.build_items_profile()
     users_items_profiles.build_users_profiles()
 
-    person_id = -1479311724257856983
-
-    uid = users_items_profiles.build_users_profile(person_id=person_id)
+    ##
     content_based_recommender_model = ContentBasedRecommender(articles_df, users_items_profiles)
     
     ##
@@ -91,6 +102,13 @@ if __name__ == "__main__":
     hybrid_recommender_model = HybridRecommender(content_based_recommender_model, cf_recommender_model, apriori_recommender_model, articles_df,
                                              cb_ensemble_weight=1.0, cf_ensemble_weight=100, ap_ensemble_weight=1.0)
     
+       ### ----- example online runtime
+    # hybrid_recommender_model.cb_rec_model.users_items_profiles.update_interactions_df(newdf)
+    person_id = -1479311724257856983
+
+    hybrid_recommender_model.update_user_profile(person_id= person_id, new_interactions_df=interactions_df)
+    # hybrid_recommender_model.cb_rec_model.users_items_profiles.update_user_profile(person_id=person_id)
+
     result = hybrid_recommender_model.recommend_items(user_id = person_id, ignore_interacted= True, topn = 10, verbose=True)
     print(result)
 
