@@ -34,6 +34,8 @@ class UsersItemsProfiles:
 
     def update_interactions_df(self, new_interactions_df):
         self.interactions_df = new_interactions_df
+        ## changes_index = ...
+        ## self.update_user_profile(changes_idex)
 
     def smooth_user_preference(self, x):
         return math.log(1+x, 2)
@@ -114,8 +116,19 @@ class UsersItemsProfiles:
         self.user_profiles = user_profiles
         return user_profiles
 
+    def update_user_profile(self, person_id, interactions_full_df = None, interactions_indexed_df= None):
+        if interactions_full_df is None and interactions_indexed_df is None:
+            self.build_interaction_df()
+            self.interactions_indexed_df = self.interactions_full_df[self.interactions_full_df['contentId'] \
+                                                    .isin(self.articles_df['contentId'])].set_index('personId')
+        user_profile = self.build_users_profile(person_id, self.interactions_indexed_df)
+        self.user_profiles[person_id] = user_profile
+        return self.user_profiles
+    
+    def update_user_profile(self, changes_indexed_df = None):
+        pass
 
-
+        
 class ContentBasedRecommender:
     
     MODEL_NAME = 'Content-Based'

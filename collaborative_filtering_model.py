@@ -93,7 +93,7 @@ class CFRecommender:
         sorted_user_predictions = self.cf_predictions_df[user_id].sort_values(ascending=False) \
                                     .reset_index().rename(columns={user_id: 'recStrength'})
         if ignore_interacted == True:
-            items_to_ignore = self.get_items_interacted(user_id, self.interactions_full_df.set_index('personId'))
+            items_to_ignore = self.get_items_interacted(user_id, self.interaction_df.set_index('personId'))
         else:
             items_to_ignore = []
         # Recommend the highest predicted rating movies that the user hasn't seen yet.

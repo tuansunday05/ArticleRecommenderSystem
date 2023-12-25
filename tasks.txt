@@ -1,0 +1,3 @@
+- build update user profile func base on their ID (content-based) {update user profile in UsersItemsProfiles class for users have changes in interactions_df}
+- build save, update tfidf_matrix
+- 
