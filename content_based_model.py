@@ -32,11 +32,17 @@ class UsersItemsProfiles:
     def smooth_user_preference(self, x):
         return math.log(1+x, 2)
 
-    def build_interaction_df(self):
-        self.interactions_df['eventStrength'] = self.interactions_df['eventType'].apply(lambda x: self.event_type_strength[x])
+    def build_interaction_df(self, person_id = None):
+        if person_id is not None:
+            self.interactions_df.loc[self.interactions_df['personId'] == person_id, 'eventStrength'] = self.interactions_df\
+                                                                                                    .loc[self.interactions_df['personId'] \
+                                                                                                    == person_id,'eventType'].apply(lambda x: \
+                                                                                                    self.event_type_strength[x])
+        else:
+            self.interactions_df['eventStrength'] = self.interactions_df['eventType'].apply(lambda x: self.event_type_strength[x])
 
         users_interactions_count_df = self.interactions_df.groupby(['personId', 'contentId']).size().groupby('personId').size()
-        users_with_enough_interactions_df = users_interactions_count_df[users_interactions_count_df >= 5].reset_index()[['personId']]
+        users_with_enough_interactions_df = users_interactions_count_df[users_interactions_count_df >= 1].reset_index()[['personId']]
         interactions_from_selected_users_df = self.interactions_df.merge(users_with_enough_interactions_df, 
                 how = 'right',
                 left_on = 'personId',
@@ -73,7 +79,7 @@ class UsersItemsProfiles:
         return item_profile
 
     def get_item_profiles(self, ids):
-        item_profiles_list = [self.get_item_profile(x) for x in ids]
+        item_profiles_list = [self.get_item_profile(x) for x in ids] if isinstance(ids, pd.Series) else self.get_item_profile(ids)
         item_profiles = scipy.sparse.vstack(item_profiles_list)
         return item_profiles
     
@@ -110,7 +116,7 @@ class UsersItemsProfiles:
 
     def update_user_profile(self, person_id, interactions_full_df = None, interactions_indexed_df= None):
         if interactions_full_df is None and interactions_indexed_df is None:
-            self.build_interaction_df()
+            self.build_interaction_df(person_id)
             self.interactions_indexed_df = self.interactions_full_df[self.interactions_full_df['contentId'] \
                                                     .isin(self.articles_df['contentId'])].set_index('personId')
         user_profile = self.build_users_profile(person_id, self.interactions_indexed_df)
@@ -196,7 +202,7 @@ if __name__ == "__main__":
     users_items_profiles.build_items_profile()
     users_items_profiles.build_users_profiles()
 
-    person_id = -1479311724257856983
+    person_id = -9150583489352258206 #-9150583489352258206 #-1479311724257856983
 
     # uid = users_profiles.build_users_profile(person_id=person_id)
     content_based_recommender_model = ContentBasedRecommender(articles_df, users_items_profiles)

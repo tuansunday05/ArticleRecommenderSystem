@@ -40,7 +40,7 @@ class CFRecommender:
         users_interactions_count_df = interactions_df.groupby(['personId', 'contentId']).size().groupby('personId').size()
 
 
-        users_with_enough_interactions_df = users_interactions_count_df[users_interactions_count_df >= 5].reset_index()[['personId']]
+        users_with_enough_interactions_df = users_interactions_count_df[users_interactions_count_df >= 1].reset_index()[['personId']]
 
         interactions_from_selected_users_df = interactions_df.merge(users_with_enough_interactions_df, 
                     how = 'right',
