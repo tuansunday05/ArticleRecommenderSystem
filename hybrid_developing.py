@@ -17,14 +17,20 @@ class HybridRecommender:
     
     MODEL_NAME = 'Hybrid'
     
-    def __init__(self, cb_rec_model, cf_rec_model, ap_rec_model, items_df, cb_ensemble_weight=1.0, cf_ensemble_weight=1.0, ap_ensemble_weight = 1.0):
+    def __init__(self, articles_df, interactions_df, cb_ensemble_weight=1.0, cf_ensemble_weight=1.0, ap_ensemble_weight = 1.0):
+        cb_rec_model = ContentBasedRecommender(articles_df, interactions_df, event_type_strength)
+        ##
+        cf_rec_model = CFRecommender(articles_df, interactions_df, event_type_strength)
+        ##
+        ap_rec_model = AprioriRecommender(articles_df, interactions_df, event_type_strength)
+        ##
         self.cb_rec_model = cb_rec_model
         self.cf_rec_model = cf_rec_model
         self.ap_rec_model = ap_rec_model
         self.cb_ensemble_weight = cb_ensemble_weight
         self.cf_ensemble_weight = cf_ensemble_weight
         self.ap_ensemble_weight = ap_ensemble_weight
-        self.items_df = items_df
+        self.items_df = articles_df
         
     def get_model_name(self):
         return self.MODEL_NAME
@@ -83,24 +89,24 @@ if __name__ == "__main__":
     articles_df = articles_df[articles_df['eventType'] == 'CONTENT SHARED']
     interactions_df = pd.read_csv('data/users_interactions.csv')
     ##
-    users_items_profiles = UsersItemsProfiles(articles_df, interactions_df, event_type_strength)
-    users_items_profiles.build_items_profile()
-    users_items_profiles.build_users_profiles()
+    # users_items_profiles = UsersItemsProfiles(articles_df, interactions_df, event_type_strength)
+    # users_items_profiles.build_items_profile()
+    # users_items_profiles.build_users_profiles()
 
     ##
-    content_based_recommender_model = ContentBasedRecommender(articles_df, users_items_profiles)
+    # content_based_recommender_model = ContentBasedRecommender(articles_df, interactions_df, event_type_strength)
     
+    # ##
+
+    # cf_recommender_model = CFRecommender(articles_df, interactions_df, event_type_strength)
+
+    # ##
+    # apriori_recommender_model = AprioriRecommender(articles_df, interactions_df, event_type_strength)
+
     ##
 
-    cf_recommender_model = CFRecommender(articles_df, interactions_df, event_type_strength)
-
-    ##
-    apriori_recommender_model = AprioriRecommender(articles_df, interactions_df, event_type_strength)
-
-    ##
-
-    hybrid_recommender_model = HybridRecommender(content_based_recommender_model, cf_recommender_model, apriori_recommender_model, articles_df,
-                                             cb_ensemble_weight=1.0, cf_ensemble_weight=100, ap_ensemble_weight=1.0)
+    hybrid_recommender_model = HybridRecommender(articles_df, interactions_df, cb_ensemble_weight=1.0,\
+                                                 cf_ensemble_weight=100, ap_ensemble_weight=1.0)
     
        ### ----- example online runtime
     # hybrid_recommender_model.cb_rec_model.users_items_profiles.update_interactions_df(newdf)

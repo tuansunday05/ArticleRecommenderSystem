@@ -131,7 +131,10 @@ class ContentBasedRecommender:
     
     MODEL_NAME = 'Content-Based'
     
-    def __init__(self, items_df=None, users_items_profiles=None):
+    def __init__(self, items_df= None, interactions_df = None, event_type_strength = None):
+        users_items_profiles = UsersItemsProfiles(items_df, interactions_df, event_type_strength)
+        users_items_profiles.build_items_profile()
+        users_items_profiles.build_users_profiles()
         self.item_ids = users_items_profiles.item_ids
         self.items_df = items_df
         self.interactions_df = users_items_profiles.interactions_df
@@ -207,15 +210,19 @@ if __name__ == "__main__":
     articles_df = pd.read_csv('data/shared_articles.csv')
     articles_df = articles_df[articles_df['eventType'] == 'CONTENT SHARED']
     interactions_df = pd.read_csv('data/users_interactions.csv')
-    users_items_profiles = UsersItemsProfiles(articles_df, interactions_df, event_type_strength)
-    users_items_profiles.build_items_profile()
-    users_items_profiles.build_users_profiles()
+    # users_items_profiles = UsersItemsProfiles(articles_df, interactions_df, event_type_strength)
+    # users_items_profiles.build_items_profile()
+    # users_items_profiles.build_users_profiles()
 
-    person_id = -9150583489352258206 #-9150583489352258206 #-1479311724257856983
+
 
     # uid = users_profiles.build_users_profile(person_id=person_id)
-    content_based_recommender_model = ContentBasedRecommender(articles_df, users_items_profiles)
-    
+    content_based_recommender_model = ContentBasedRecommender(articles_df, interactions_df, event_type_strength)
+    # ------ update while online running
+    person_id = -9150583489352258206 #-9150583489352258206 #-1479311724257856983
+    content_based_recommender_model.update_interactions_df(interactions_df) # new
+    content_based_recommender_model.update_user_profile(person_id=person_id)
+
     result = content_based_recommender_model.recommend_items(person_id, 
                                                user_profile= None,      #uid
                                                ignore_interacted= True, 
