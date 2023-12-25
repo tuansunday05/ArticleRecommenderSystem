@@ -82,9 +82,11 @@ if __name__ == "__main__":
     users_items_profiles = UsersItemsProfiles(articles_df, interactions_df, event_type_strength)
     users_items_profiles.build_items_profile()
     users_items_profiles.build_users_profiles()
-    person_id = -1479311724257856983
 
-    uid = users_items_profiles.build_users_profile(person_id=person_id)
+    ### ----- example online runtime
+    # users_items_profiles.update_interactions_df(newdf)
+    person_id = -1479311724257856983
+    users_items_profiles.update_user_profile(person_id=person_id)
     content_based_recommender_model = ContentBasedRecommender(articles_df, users_items_profiles)
     
     ##

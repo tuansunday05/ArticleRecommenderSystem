@@ -123,7 +123,7 @@ class UsersItemsProfiles:
         self.user_profiles[person_id] = user_profile
         return self.user_profiles
     
-    def update_user_profile(self, changes_indexed_df = None):
+    def update_users_profiles(self, changes_indexed_df = None):
         pass
 
         
