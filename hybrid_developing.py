@@ -14,7 +14,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 from scipy.sparse.linalg import svds
 from sklearn.preprocessing import MinMaxScaler
 import matplotlib.pyplot as plt
-from content_based_model import UsersProfiles, ContentBasedRecommender
+from content_based_model import UsersItemsProfiles, ContentBasedRecommender
 from collaborative_filtering_model import CFRecommender
 from apriori_model import AprioriRecommender
 event_type_strength = {
@@ -82,13 +82,14 @@ if __name__ == "__main__":
     articles_df = articles_df[articles_df['eventType'] == 'CONTENT SHARED']
     interactions_df = pd.read_csv('data/users_interactions.csv')
     ##
-    users_profiles = UsersProfiles(articles_df, interactions_df, event_type_strength)
-    users_profiles.build_users_profiles()
+    users_items_profiles = UsersItemsProfiles(articles_df, interactions_df, event_type_strength)
+    users_items_profiles.build_items_profile()
+    users_items_profiles.build_users_profiles()
 
     person_id = -1479311724257856983
 
-    uid = users_profiles.build_users_profile(person_id=person_id)
-    content_based_recommender_model = ContentBasedRecommender(articles_df, users_profiles)
+    uid = users_items_profiles.build_users_profile(person_id=person_id)
+    content_based_recommender_model = ContentBasedRecommender(articles_df, users_items_profiles)
     
     ##
 
