@@ -35,7 +35,7 @@ class HybridRecommender:
     def get_model_name(self):
         return self.MODEL_NAME
     
-    def update_user_profile(self, person_id, new_interactions_df = None, CB= True, CF= False, AP=True):
+    def update_user_profile(self, person_id, new_interactions_df = None, CB= True, CF= True, AP=True):
         if CB == True and new_interactions_df is not None:
             self.cb_rec_model.update_interactions_df(new_interactions_df)
             self.cb_rec_model.users_items_profiles.update_user_profile(person_id= person_id)
@@ -89,32 +89,13 @@ if __name__ == "__main__":
     articles_df = articles_df[articles_df['eventType'] == 'CONTENT SHARED']
     interactions_df = pd.read_csv('data/users_interactions.csv')
     ##
-    # users_items_profiles = UsersItemsProfiles(articles_df, interactions_df, event_type_strength)
-    # users_items_profiles.build_items_profile()
-    # users_items_profiles.build_users_profiles()
-
-    ##
-    # content_based_recommender_model = ContentBasedRecommender(articles_df, interactions_df, event_type_strength)
-    
-    # ##
-
-    # cf_recommender_model = CFRecommender(articles_df, interactions_df, event_type_strength)
-
-    # ##
-    # apriori_recommender_model = AprioriRecommender(articles_df, interactions_df, event_type_strength)
-
-    ##
-
     hybrid_recommender_model = HybridRecommender(articles_df, interactions_df, cb_ensemble_weight=1.0,\
                                                  cf_ensemble_weight=100, ap_ensemble_weight=1.0)
     
-       ### ----- example online runtime
-    # hybrid_recommender_model.cb_rec_model.users_items_profiles.update_interactions_df(newdf)
+    ### ----- example online runtime
     person_id = -1479311724257856983
 
     hybrid_recommender_model.update_user_profile(person_id= person_id, new_interactions_df=interactions_df)
-    # hybrid_recommender_model.cb_rec_model.users_items_profiles.update_user_profile(person_id=person_id)
-
     result = hybrid_recommender_model.recommend_items(user_id = person_id, ignore_interacted= True, topn = 10, verbose=True)
     print(result)
 
