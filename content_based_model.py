@@ -23,14 +23,14 @@ event_type_strength = {
         'COMMENT CREATED': 4.0,  
 }
 
-class UsersProfiles:
+class UsersItemsProfiles:
         
     def __init__(self, articles_df, interactions_df, event_type_strength):     
         self.articles_df = articles_df
         self.interactions_df = interactions_df
         self.event_type_strength = event_type_strength
-        self.build_interaction_df()
-        self.build_tfidf_matrix()
+        # self.build_interaction_df()
+        # self.build_tfidf_matrix()
 
     def update_interactions_df(self, new_interactions_df):
         self.interactions_df = new_interactions_df
@@ -82,11 +82,19 @@ class UsersProfiles:
         item_profiles_list = [self.get_item_profile(x) for x in ids]
         item_profiles = scipy.sparse.vstack(item_profiles_list)
         return item_profiles
+    
+    def build_items_profile(self):
+        interactions_full_df = self.build_interaction_df()
+        item_ids, tfidf_matrix = self.build_tfidf_matrix()
+        return interactions_full_df, item_ids, tfidf_matrix
+
 
     def build_users_profile(self, person_id, interactions_indexed_df = None):
         if interactions_indexed_df is not None:
             interactions_person_df = interactions_indexed_df.loc[person_id]
         else:
+            self.interactions_indexed_df = self.interactions_full_df[self.interactions_full_df['contentId'] \
+                                                    .isin(self.articles_df['contentId'])].set_index('personId')
             interactions_person_df = self.interactions_indexed_df.loc[person_id]
         user_item_profiles = self.get_item_profiles(interactions_person_df['contentId'])
         
@@ -112,12 +120,13 @@ class ContentBasedRecommender:
     
     MODEL_NAME = 'Content-Based'
     
-    def __init__(self, items_df=None, users_profiles=None):
-        self.item_ids = users_profiles.item_ids
+    def __init__(self, items_df=None, users_items_profiles=None):
+        self.item_ids = users_items_profiles.item_ids
         self.items_df = items_df
-        self.tfidf_matrix = users_profiles.tfidf_matrix
-        self.user_profiles = users_profiles.user_profiles
-        self.interactions_full_df = users_profiles.interactions_full_df
+        self.interactions_df = users_items_profiles.interactions_df
+        self.tfidf_matrix = users_items_profiles.tfidf_matrix
+        self.user_profiles = users_items_profiles.user_profiles
+        self.interactions_full_df = users_items_profiles.interactions_full_df
     def get_model_name(self):
         return self.MODEL_NAME
         
@@ -140,7 +149,7 @@ class ContentBasedRecommender:
     
     def recommend_items(self, user_id = None, user_profile = None, ignore_interacted=False, topn=10, verbose=False):
         similar_items = self._get_similar_items_to_user_profile(user_id, user_profile)
-        items_to_ignore = self.get_items_interacted(user_id, self.interactions_full_df.set_index('personId'))
+        items_to_ignore = self.get_items_interacted(user_id, self.interactions_df.set_index('personId'))
         #Ignores items the user has already interacted
         if ignore_interacted == True:
             similar_items_filtered = list(filter(lambda x: x[0] not in items_to_ignore, similar_items))
@@ -165,16 +174,17 @@ if __name__ == "__main__":
     articles_df = pd.read_csv('data/shared_articles.csv')
     articles_df = articles_df[articles_df['eventType'] == 'CONTENT SHARED']
     interactions_df = pd.read_csv('data/users_interactions.csv')
-    users_profiles = UsersProfiles(articles_df, interactions_df, event_type_strength)
-    users_profiles.build_users_profiles()
+    users_items_profiles = UsersItemsProfiles(articles_df, interactions_df, event_type_strength)
+    users_items_profiles.build_items_profile()
+    users_items_profiles.build_users_profiles()
 
     person_id = -1479311724257856983
 
-    uid = users_profiles.build_users_profile(person_id=person_id)
-    content_based_recommender_model = ContentBasedRecommender(articles_df, users_profiles)
+    # uid = users_profiles.build_users_profile(person_id=person_id)
+    content_based_recommender_model = ContentBasedRecommender(articles_df, users_items_profiles)
     
     result = content_based_recommender_model.recommend_items(person_id, 
-                                               user_profile= uid,
+                                               user_profile= None,      #uid
                                                ignore_interacted= True, 
                                                topn=10,
                                                verbose= True)

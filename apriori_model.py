@@ -31,9 +31,19 @@ class AprioriRecommender:
     def __init__(self, articles_df= None, interactions_df= None, event_type_strength = None):
         self.interactions_df = interactions_df
         self.interactions_df['eventStrength'] = interactions_df['eventType'].apply(lambda x: event_type_strength[x])
-
+        users_interactions_count_df = self.interactions_df.groupby(['personId', 'contentId']).size().groupby('personId').size()
+        users_with_enough_interactions_df = users_interactions_count_df[users_interactions_count_df >= 5].reset_index()[['personId']]
+        interactions_from_selected_users_df = self.interactions_df.merge(users_with_enough_interactions_df, 
+                how = 'right',
+                left_on = 'personId',
+                right_on = 'personId')
+        
+        # self.interactions_full_df = interactions_from_selected_users_df \
+        #                 .groupby(['personId', 'contentId'])['eventStrength'].sum() \
+        #                 .apply(self.smooth_user_preference).reset_index()
+        
         self.items_df = articles_df
-        dataset = list(interactions_df.groupby('personId', as_index=False).agg({'contentId': list})['contentId'].values)
+        dataset = list(interactions_from_selected_users_df.groupby('personId', as_index=False).agg({'contentId': list})['contentId'].values)
         te = TransactionEncoder()
         te_ary = te.fit(dataset).transform(dataset)
         df = pd.DataFrame(te_ary, columns=te.columns_)
