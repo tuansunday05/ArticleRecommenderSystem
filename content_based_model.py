@@ -158,7 +158,7 @@ class ContentBasedRecommender:
         similar_items = sorted([(self.item_ids[i], cosine_similarities[0,i]) for i in similar_indices], key=lambda x: -x[1])
         return similar_items
     
-    def get_similar_items_to_item_profile(self, item_id= None, item_profile = None, topn=50):
+    def get_similar_items_to_item_profile(self, item_id= None, user_id = None, item_profile = None, ignore_interacted = True, topn=50, verbose= True):
         #Computes the cosine similarity between the user profile and all item profiles
         if item_profile is None:
             item_profile = self.users_items_profiles.get_item_profile(item_id)
@@ -167,6 +167,23 @@ class ContentBasedRecommender:
         similar_indices = cosine_similarities.argsort().flatten()[-topn:]
         #Sort the similar items by similarity
         similar_items = sorted([(self.item_ids[i], cosine_similarities[0,i]) for i in similar_indices], key=lambda x: -x[1])
+        items_to_ignore = self.get_items_interacted(user_id, self.interactions_df.set_index('personId'))
+        #Ignores items the user has already interacted
+        if ignore_interacted == True:
+            similar_items_filtered = list(filter(lambda x: x[0] not in items_to_ignore, similar_items))
+        else:
+            similar_items_filtered = similar_items
+        recommendations_df = pd.DataFrame(similar_items_filtered, columns=['contentId', 'recStrength']) \
+                                    .head(topn)
+
+        if verbose:
+            if self.items_df is None:
+                raise Exception('"items_df" is required in verbose mode')
+
+            recommendations_df = recommendations_df.merge(self.items_df, how = 'left', 
+                                                          left_on = 'contentId', 
+                                                          right_on = 'contentId')[['recStrength', 'contentId', 'title', 'url', 'lang']]
+
         return similar_items
     
     def get_items_interacted(self, person_id, interactions_df):
