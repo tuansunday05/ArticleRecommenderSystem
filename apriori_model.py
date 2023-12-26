@@ -26,10 +26,6 @@ class AprioriRecommender:
                 left_on = 'personId',
                 right_on = 'personId')
         
-        # self.interactions_full_df = interactions_from_selected_users_df \
-        #                 .groupby(['personId', 'contentId'])['eventStrength'].sum() \
-        #                 .apply(self.smooth_user_preference).reset_index()
-        
         self.items_df = articles_df
         dataset = list(interactions_from_selected_users_df.groupby('personId', as_index=False).agg({'contentId': list})['contentId'].values)
         te = TransactionEncoder()
@@ -101,7 +97,7 @@ if __name__ == "__main__":
     articles_df = pd.read_csv('data/shared_articles.csv')
     articles_df = articles_df[articles_df['eventType'] == 'CONTENT SHARED']
     interactions_df = pd.read_csv('data/users_interactions.csv')
-    person_id = -9150583489352258206 #-9150583489352258206 #-1479311724257856983
+    person_id = -1479311724257856983 #-9150583489352258206 #-1479311724257856983
 
     apriori_recommender_model = AprioriRecommender(articles_df, interactions_df, event_type_strength)
     result = apriori_recommender_model.recommend_items(user_id= person_id, ignore_interacted=True, topn=10, verbose= True)

@@ -18,15 +18,9 @@ class HybridRecommender:
     MODEL_NAME = 'Hybrid'
     
     def __init__(self, articles_df, interactions_df, cb_ensemble_weight=1.0, cf_ensemble_weight=1.0, ap_ensemble_weight = 1.0):
-        cb_rec_model = ContentBasedRecommender(articles_df, interactions_df, event_type_strength)
-        ##
-        cf_rec_model = CFRecommender(articles_df, interactions_df, event_type_strength)
-        ##
-        ap_rec_model = AprioriRecommender(articles_df, interactions_df, event_type_strength)
-        ##
-        self.cb_rec_model = cb_rec_model
-        self.cf_rec_model = cf_rec_model
-        self.ap_rec_model = ap_rec_model
+        self.cb_rec_model = ContentBasedRecommender(articles_df, interactions_df, event_type_strength)
+        self.cf_rec_model = CFRecommender(articles_df, interactions_df, event_type_strength)
+        self.ap_rec_model = AprioriRecommender(articles_df, interactions_df, event_type_strength)
         self.cb_ensemble_weight = cb_ensemble_weight
         self.cf_ensemble_weight = cf_ensemble_weight
         self.ap_ensemble_weight = ap_ensemble_weight
@@ -44,29 +38,25 @@ class HybridRecommender:
         if AP == True:
             self.ap_rec_model.update_user_profile(person_id= person_id)
         
-        # user_profile = self.build_users_profile(person_id, self.interactions_indexed_df)
-        # self.user_profiles[person_id] = user_profile
-        
         
     def recommend_items(self, user_id, ignore_interacted= False, topn=10, verbose=False):
-        #Getting the top-1000 Content-based filtering recommendations
+        #Getting the top-500 Content-based filtering recommendations
         cb_recs_df = self.cb_rec_model.recommend_items(user_id, ignore_interacted= ignore_interacted, verbose=verbose,
-                                                           topn=1000).rename(columns={'recStrength': 'recStrengthCB'})
+                                                           topn=500).rename(columns={'recStrength': 'recStrengthCB'})
         
-        #Getting the top-1000 Collaborative filtering recommendations
+        #Getting the top-500 Collaborative filtering recommendations
         cf_recs_df = self.cf_rec_model.recommend_items(user_id, ignore_interacted= ignore_interacted, verbose=verbose, 
-                                                           topn=1000).rename(columns={'recStrength': 'recStrengthCF'})
+                                                           topn=500).rename(columns={'recStrength': 'recStrengthCF'})
         
-        #
+        #Getting the top-500 Apriori filtering recommendations
         ap_recs_df = self.ap_rec_model.recommend_items(user_id, ignore_interacted=ignore_interacted, verbose=verbose,
-                                                        topn=1000).rename(columns={'recStrength': 'recStrengthAP'})
+                                                        topn=500).rename(columns={'recStrength': 'recStrengthAP'})
 
         #Combining the results by contentId
         recs_df = cb_recs_df.merge(cf_recs_df, how = 'outer', left_on = 'contentId', right_on = 'contentId').fillna(0.0) \
                             .merge(ap_recs_df, how = 'outer', left_on = 'contentId', right_on = 'contentId').fillna(0.0)
         
-        #Computing a hybrid recommendation score based on CF and CB scores
-        #recs_df['recStrengthHybrid'] = recs_df['recStrengthCB'] * recs_df['recStrengthCF'] 
+        #Computing a hybrid recommendation score based on CF, CB and AP scores
         recs_df['recStrengthHybrid'] = (recs_df['recStrengthCB'] * self.cb_ensemble_weight) + (recs_df['recStrengthCF'] \
                                             * self.cf_ensemble_weight) + (recs_df['recStrengthAP'] * self.ap_ensemble_weight)
 
@@ -77,7 +67,7 @@ class HybridRecommender:
         if verbose:
             if self.items_df is None:
                 raise Exception('"items_df" is required in verbose mode')
-            # print(recommendations_df)
+
             recommendations_df = recommendations_df.drop(['title', 'url', 'lang'], axis = 1).merge(self.items_df, how = 'left', 
                                                           left_on = 'contentId', 
                                                           right_on = 'contentId')[['recStrengthHybrid', 'contentId', 'title', 'url', 'lang']]

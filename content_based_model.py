@@ -210,21 +210,13 @@ if __name__ == "__main__":
     articles_df = pd.read_csv('data/shared_articles.csv')
     articles_df = articles_df[articles_df['eventType'] == 'CONTENT SHARED']
     interactions_df = pd.read_csv('data/users_interactions.csv')
-    # users_items_profiles = UsersItemsProfiles(articles_df, interactions_df, event_type_strength)
-    # users_items_profiles.build_items_profile()
-    # users_items_profiles.build_users_profiles()
-
-
-
-    # uid = users_profiles.build_users_profile(person_id=person_id)
     content_based_recommender_model = ContentBasedRecommender(articles_df, interactions_df, event_type_strength)
     # ------ update while online running
-    person_id = -9150583489352258206 #-9150583489352258206 #-1479311724257856983
-    content_based_recommender_model.update_interactions_df(interactions_df) # new
-    content_based_recommender_model.update_user_profile(person_id=person_id)
+    person_id = -1479311724257856983 #-9150583489352258206 #-1479311724257856983
+    content_based_recommender_model.update_interactions_df(interactions_df) # new interactions_df
+    content_based_recommender_model.update_user_profile(person_id=person_id) # new interaction of person_id
 
     result = content_based_recommender_model.recommend_items(person_id, 
-                                               user_profile= None,      #uid
                                                ignore_interacted= True, 
                                                topn=10,
                                                verbose= True)
