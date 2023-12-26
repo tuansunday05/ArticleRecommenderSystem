@@ -140,7 +140,7 @@ class ContentBasedRecommender:
         self.interactions_df = users_items_profiles.interactions_df
         self.tfidf_matrix = users_items_profiles.tfidf_matrix
         self.user_profiles = users_items_profiles.user_profiles
-        self.interactions_full_df = users_items_profiles.interactions_full_df
+        # self.interactions_full_df = users_items_profiles.interactions_full_df
         self.users_items_profiles = users_items_profiles
 
     def get_model_name(self):

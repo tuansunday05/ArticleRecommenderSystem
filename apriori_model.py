@@ -42,14 +42,9 @@ class AprioriRecommender:
         
     def _get_similar_items_to_user_profile(self, person_id):
         cands = list(self.interactions_df.loc[self.interactions_df['personId'] == person_id, 'contentId'].values)
-        
         cands = self.interactions_df.loc[self.interactions_df['personId'] == person_id, ['contentId', 'eventStrength']]
-        # self.rules_df['consequents'] = self.rules_df['consequents'].astype('int64')
         cands = cands.merge(self.rules_df, right_on='antecedents', left_on='contentId', how='inner')
-
         cands['lift'] = np.log(cands['lift'] * cands['eventStrength'])
-        # cands['contentId'] = cands['contentId'].astype('int64')
-        ###bug
         selected_cands = cands[['consequents', 'lift']].sort_values('lift', ascending=False)
         return selected_cands
     
@@ -59,12 +54,12 @@ class AprioriRecommender:
         return set(interacted_items if type(interacted_items) == pd.Series else [interacted_items])
     
     def update_interactions_df(self, interactions_df):
-            # Get the user's data and merge in the movie information.
+        # Get the user's data and merge in the movie information.
         self.interactions_df = interactions_df
         return self.interactions_df
     
     def update_user_profile(self, person_id = None):
-            # Get the user's data and merge in the movie information.
+        # Get the user's data and merge in the movie information.
         if person_id is not None:
             self.interactions_df.loc[self.interactions_df['personId'] == person_id, 'eventStrength'] = self.interactions_df\
                                                                                                     .loc[self.interactions_df['personId'] \

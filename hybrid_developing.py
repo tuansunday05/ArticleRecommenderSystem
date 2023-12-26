@@ -17,7 +17,7 @@ class HybridRecommender:
     
     MODEL_NAME = 'Hybrid'
     
-    def __init__(self, articles_df, interactions_df, cb_ensemble_weight=1.0, cf_ensemble_weight=1.0, ap_ensemble_weight = 1.0):
+    def __init__(self, articles_df, interactions_df, cb_ensemble_weight=1.0, cf_ensemble_weight=1.0, ap_ensemble_weight = 1.0, event_type_strength = None):
         self.cb_rec_model = ContentBasedRecommender(articles_df, interactions_df, event_type_strength)
         self.cf_rec_model = CFRecommender(articles_df, interactions_df, event_type_strength)
         self.ap_rec_model = AprioriRecommender(articles_df, interactions_df, event_type_strength)
@@ -25,6 +25,8 @@ class HybridRecommender:
         self.cf_ensemble_weight = cf_ensemble_weight
         self.ap_ensemble_weight = ap_ensemble_weight
         self.items_df = articles_df
+        self.interactions_df =interactions_df
+        self.event_type_strength = event_type_strength
         
     def get_model_name(self):
         return self.MODEL_NAME
@@ -37,20 +39,28 @@ class HybridRecommender:
             self.cf_rec_model.update_interaction(new_interactions_df)
         if AP == True:
             self.ap_rec_model.update_user_profile(person_id= person_id)
+
+    def update_weight(self, CB= True, CF= True, AP=True ):
+        if CB == True:
+            self.cb_rec_model.__init__(self.items_df, self.interactions_df, self.event_type_strength)
+        if CF == True:
+            self.cf_rec_model.__init__(self.items_df, self.interactions_df, self.event_type_strength)
+        if AP == True:
+            self.ap_rec_model.__init__(self.items_df, self.interactions_df, self.event_type_strength)
         
         
     def recommend_items(self, user_id, ignore_interacted= False, topn=10, verbose=False):
         #Getting the top-500 Content-based filtering recommendations
         cb_recs_df = self.cb_rec_model.recommend_items(user_id, ignore_interacted= ignore_interacted, verbose=verbose,
-                                                           topn=500).rename(columns={'recStrength': 'recStrengthCB'})
+                                                           topn=1000).rename(columns={'recStrength': 'recStrengthCB'})
         
         #Getting the top-500 Collaborative filtering recommendations
         cf_recs_df = self.cf_rec_model.recommend_items(user_id, ignore_interacted= ignore_interacted, verbose=verbose, 
-                                                           topn=500).rename(columns={'recStrength': 'recStrengthCF'})
+                                                           topn=1000).rename(columns={'recStrength': 'recStrengthCF'})
         
         #Getting the top-500 Apriori filtering recommendations
         ap_recs_df = self.ap_rec_model.recommend_items(user_id, ignore_interacted=ignore_interacted, verbose=verbose,
-                                                        topn=500).rename(columns={'recStrength': 'recStrengthAP'})
+                                                        topn=1000).rename(columns={'recStrength': 'recStrengthAP'})
 
         #Combining the results by contentId
         recs_df = cb_recs_df.merge(cf_recs_df, how = 'outer', left_on = 'contentId', right_on = 'contentId').fillna(0.0) \
@@ -79,10 +89,11 @@ if __name__ == "__main__":
     articles_df = articles_df[articles_df['eventType'] == 'CONTENT SHARED']
     interactions_df = pd.read_csv('data/users_interactions.csv')
     ##
-    hybrid_recommender_model = HybridRecommender(articles_df, interactions_df, cb_ensemble_weight=1.0,\
-                                                 cf_ensemble_weight=100, ap_ensemble_weight=1.0)
+    hybrid_recommender_model = HybridRecommender(articles_df, interactions_df, cb_ensemble_weight=10.0,\
+                                                 cf_ensemble_weight=100, ap_ensemble_weight=1.0,event_type_strength= \
+                                                 event_type_strength)
     
-    ### ----- example online runtime
+    ### ----- example online runtimes
     person_id = -1479311724257856983
 
     hybrid_recommender_model.update_user_profile(person_id= person_id, new_interactions_df=interactions_df)
