@@ -17,7 +17,8 @@ class HybridRecommender:
     
     MODEL_NAME = 'Hybrid'
     
-    def __init__(self, articles_df, interactions_df, cb_ensemble_weight=1.0, cf_ensemble_weight=1.0, ap_ensemble_weight = 1.0, event_type_strength = None):
+    def __init__(self, articles_df, interactions_df, cb_ensemble_weight=1.0, cf_ensemble_weight=1.0,\
+                 ap_ensemble_weight = 1.0, event_type_strength = None):
         self.cb_rec_model = ContentBasedRecommender(articles_df, interactions_df, event_type_strength)
         self.cf_rec_model = CFRecommender(articles_df, interactions_df, event_type_strength)
         self.ap_rec_model = AprioriRecommender(articles_df, interactions_df, event_type_strength)
@@ -89,14 +90,14 @@ if __name__ == "__main__":
     articles_df = articles_df[articles_df['eventType'] == 'CONTENT SHARED']
     interactions_df = pd.read_csv('data/users_interactions.csv')
     ##
-    hybrid_recommender_model = HybridRecommender(articles_df, interactions_df, cb_ensemble_weight=10.0,\
+    hybrid_recommender_model = HybridRecommender(articles_df, interactions_df, cb_ensemble_weight=1.0,\
                                                  cf_ensemble_weight=100, ap_ensemble_weight=1.0,event_type_strength= \
                                                  event_type_strength)
     
     ### ----- example online runtimes
     person_id = -1479311724257856983
 
-    hybrid_recommender_model.update_user_profile(person_id= person_id, new_interactions_df=interactions_df)
-    result = hybrid_recommender_model.recommend_items(user_id = person_id, ignore_interacted= True, topn = 10, verbose=True)
+    # hybrid_recommender_model.update_user_profile(person_id= person_id, new_interactions_df=interactions_df)
+    result = hybrid_recommender_model.recommend_items(user_id = person_id, ignore_interacted= False, topn = 10, verbose=True)
     print(result)
 
