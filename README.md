@@ -42,6 +42,7 @@ Our recommendation system aims to deliver personalized suggestions by seamlessly
 - Using update_user_profile method of HybridRecommender class with the ID of user needed to update information.
 
 ## Results
+![Alt text](images/result.png)
 
 - Evaluation metrics and comparisons of the hybrid model against individual models are provided.
 - The hybrid model is demonstrated to outperform single models in terms of recommendation accuracy and coverage.
