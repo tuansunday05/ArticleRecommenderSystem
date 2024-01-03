@@ -68,3 +68,7 @@ Our recommendation system aims to deliver personalized suggestions by seamlessly
 4. Run the recommender engine:
    ```bash
     python3 scripts/models/hybrid_developing.py
+
+## License
+
+This project is licensed under the [**MIT License**](https://github.com/tuansunday05/ArticleRecommenderSystem/blob/master/LICENSE).
